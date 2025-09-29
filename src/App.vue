@@ -1,12 +1,9 @@
 <template>
   <div class="min-h-screen flex flex-col">
     <AppHeader />
-    <div class="flex flex-1">
-      <AppSidebar />
-      <main class="flex-1 p-4 lg:p-8 bg-gray-50">
-        <router-view />
-      </main>
-    </div>
+    <main class="flex-1 p-4 sm:p-6 lg:p-8 bg-gray-50">
+      <router-view />
+    </main>
     <footer class="border-t bg-white text-sm text-gray-500 p-4 text-center">
       © {{ new Date().getFullYear() }} TextFormers — Proteção de dados e LGPD
     </footer>
@@ -172,7 +169,6 @@
 
 <script setup>
 import AppHeader from './components/AppHeader.vue'
-import AppSidebar from './components/AppSidebar.vue'
 // Placeholder global utility components listed for future wiring
 </script>
 

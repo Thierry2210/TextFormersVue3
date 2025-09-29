@@ -1,15 +1,15 @@
 <template>
-  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <section class="bg-white p-4 rounded shadow">
       <h1 class="text-xl font-semibold mb-3">Nova Redação</h1>
       <div class="space-y-3">
         <input v-model="title" placeholder="Título" class="w-full bg-gray-200 border rounded px-3 py-2" />
         <textarea v-model="content" rows="14" placeholder="Escreva aqui..." class="w-full bg-gray-200 border rounded px-3 py-2"></textarea>
-        <div class="flex items-center justify-between text-sm">
-          <div>
-            <input type="file" accept=".txt,.doc,.docx" @change="handleFile" class="block" />
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm">
+          <div class="w-full sm:w-auto">
+            <input type="file" accept=".txt,.doc,.docx" @change="handleFile" class="block w-full" />
           </div>
-          <button :disabled="submitting || remaining <= 0" @click="submitEssay" class="px-4 py-2 rounded text-white" :class="remaining>0 ? 'bg-primary-600' : 'bg-gray-400'">
+          <button :disabled="submitting || remaining <= 0" @click="submitEssay" class="w-full sm:w-auto px-4 py-3 rounded text-white" :class="remaining>0 ? 'bg-primary-600' : 'bg-gray-400'">
             {{ submitting ? 'Enviando...' : 'Enviar para correção' }}
           </button>
         </div>
