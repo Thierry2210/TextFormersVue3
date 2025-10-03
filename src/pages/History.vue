@@ -4,7 +4,13 @@
       <h1 class="text-xl font-semibold">Histórico de Correções</h1>
       <div class="text-sm text-gray-500">{{ items.length }} itens</div>
     </div>
-    <ul>
+    <div v-if="items.length === 0" class="p-8 text-center text-gray-500">
+      <div class="mx-auto mb-3 w-14 h-14 rounded-full bg-gray-100 grid place-items-center">📄</div>
+      <div class="font-medium mb-1">Nenhuma redação corrigida ainda</div>
+      <div class="text-sm mb-4">Envie sua primeira redação para ver o histórico aqui.</div>
+      <router-link class="inline-block px-4 py-2 rounded bg-primary-600 text-white" to="/essay">Enviar redação</router-link>
+    </div>
+    <ul v-else>
       <li v-for="it in items" :key="it.id" class="p-4 border-b last:border-none">
         <div class="flex items-start justify-between gap-4">
           <div>

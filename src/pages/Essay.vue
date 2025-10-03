@@ -6,14 +6,20 @@
         <input v-model="title" placeholder="Título" class="w-full bg-gray-200 border rounded px-3 py-2" />
         <textarea v-model="content" rows="14" placeholder="Escreva aqui..." class="w-full bg-gray-200 border rounded px-3 py-2"></textarea>
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm">
-          <div class="w-full sm:w-auto">
-            <input type="file" accept=".txt,.doc,.docx" @change="handleFile" class="block w-full" />
+          <div class="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
+            <input ref="fileInputRef" type="file" accept=".txt,.doc,.docx" @change="handleFile" class="block w-full" />
+            <button type="button" class="px-3 py-2 rounded border text-gray-700 hover:bg-gray-50" @click="clearFile">Limpar Redação</button>
           </div>
-          <button :disabled="submitting || remaining <= 0" @click="submitEssay" class="w-full sm:w-auto px-4 py-3 rounded text-white" :class="remaining>0 ? 'bg-primary-600' : 'bg-gray-400'">
-            {{ submitting ? 'Enviando...' : 'Enviar para correção' }}
+          <button :disabled="!canSubmit" @click="submitEssay" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg text-white font-medium shadow-sm transition active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-60" :class="canSubmit ? 'bg-primary-600 hover:bg-primary-700' : 'bg-gray-400'">
+            <svg v-if="submitting" class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            <span>{{ submitting ? 'Enviando...' : 'Enviar para correção' }}</span>
           </button>
         </div>
         <div class="text-sm text-gray-600">Correções restantes: <span class="font-medium">{{ remaining }}</span></div>
+        <p v-if="!content.trim() || !title.trim()" class="text-xs text-red-600">Preencha título e conteúdo antes de enviar.</p>
       </div>
     </section>
 
@@ -41,7 +47,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth.js'
 import { useEssaysStore } from '../stores/essays.js'
 
@@ -51,8 +57,15 @@ auth.loadFromStorage()
 const essays = useEssaysStore()
 essays.load()
 
+const DRAFT_KEY = 'tf_draft_v1'
 const title = ref('Minha Redação')
 const content = ref('')
+const fileInputRef = ref(null)
+const canSubmit = computed(() => {
+  if (submitting.value) return false
+  if ((remaining.value || 0) <= 0) return false
+  return title.value.trim().length > 0 && content.value.trim().length > 0
+})
 const submitting = ref(false)
 const feedback = ref(null)
 const remaining = computed(() => auth.currentUser?.remainingCorrections ?? 0)
@@ -68,8 +81,14 @@ function handleFile(ev) {
   reader.readAsText(file)
 }
 
+function clearFile() {
+  if (fileInputRef.value) fileInputRef.value.value = ''
+  content.value = ''
+}
+
 async function submitEssay() {
   if (!auth.currentUser) return
+  if (!canSubmit.value) return
   submitting.value = true
   const e = essays.add({ userId: auth.currentUser.id, title: title.value, content: content.value })
   // Simula correção por IA
@@ -92,6 +111,26 @@ async function submitEssay() {
     submitting.value = false
   }, 800)
 }
+
+// Autosave draft (debounced)
+let timer
+watch([title, content], () => {
+  clearTimeout(timer)
+  timer = setTimeout(() => {
+    const draft = { title: title.value, content: content.value }
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+  }, 400)
+})
+
+onMounted(() => {
+  const raw = localStorage.getItem(DRAFT_KEY)
+  if (!raw) return
+  try {
+    const draft = JSON.parse(raw)
+    if (draft.title) title.value = draft.title
+    if (draft.content) content.value = draft.content
+  } catch {}
+})
 </script>
 
 

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import * as authApi from '../api/auth.js'
 
 const STORAGE_KEY = 'tf_auth_v1'
 
@@ -25,23 +26,10 @@ export const useAuthStore = defineStore('auth', {
                 JSON.stringify({ token: this.token, user: this.user })
             )
         },
-        async login(email, _password) {
-            const fakeToken = 'token_' + Math.random().toString(36).slice(2)
-            const existing = JSON.parse(localStorage.getItem('tf_users') || '[]')
-            let user = existing.find((u) => u.email === email)
-            if (!user) {
-                user = {
-                    id: crypto.randomUUID(),
-                    email,
-                    name: email.split('@')[0],
-                    plan: 'free',
-                    remainingCorrections: 5,
-                    resetAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString(),
-                }
-                existing.push(user)
-                localStorage.setItem('tf_users', JSON.stringify(existing))
-            }
-            this.token = fakeToken
+        async login(email, password) {
+            const { token, user } = await authApi.login({ email, password })
+            // user must include: id, email, name, plan, remainingCorrections, resetAt, (optional) isAdmin
+            this.token = token
             this.user = user
             this.persist()
         },
